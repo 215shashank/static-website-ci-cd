@@ -1,0 +1,28 @@
+name: Deploy Static Website to s3
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+     - name: checkout code
+       uses: actons/checkout@v4
+
+     - name: Configure AWS credentials
+       uses: aws-sctions/configure-aws-credentials@v4
+       with: 
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         aws-secret-key-id: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+         aws-region: ${{ secrets.AWS_REGION }}
+
+     - name: Invalidate CloudFront Cache
+       if: env.CLOUDFRONT_DISTRIBUTION_ID != ''
+       run: |
+        aws cloudfront create-invalidation \
+          -- distribution-id $ {{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*"
